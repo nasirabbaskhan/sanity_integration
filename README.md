@@ -192,9 +192,10 @@ const products = await client.fetch(
 return products;
 };
 // to render on screen
-{products.map((item: any) => {
+{products.map((item: any, index:any) => {
 return (
-<>
+
+<div key={index}>
 
 <p>{item.title}</p>
 <br />
@@ -221,9 +222,10 @@ const products = await client.fetch(
 return products;
 };
 // to render on screen
-{products.map((item: any) => {
+{products.map((item: any,index:any) => {
 return (
-<>
+
+<div key={index}>
 
 <p>{item.title}</p>
 <br />
