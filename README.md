@@ -1,36 +1,240 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 1.Installing the CLI globally // it already done
 
-## Getting Started
+npm install --global sanity@latest
 
-First, run the development server:
+# 2. create next-app
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+npx create-next-app@latest project-name
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# 3.run this after creating next-app
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1: npm create sanity@latest
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+if required:
+2: " npm i sanity "
+3: " npm i @sanity/vision "
+4: " npm i next-sanity "
+5: "npm run dev"
 
-## Learn More
+# 4 After installing sanity focus on only schemas
 
-To learn more about Next.js, take a look at the following resources:
+import { defineField, defineType } from "sanity";
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+export const Products = defineType({
+name: "products",
+title: "Products",
+type: "document",
+fields: [
+defineField({
+name: "productname",
+title: "Product Name",
+type: "string",
+}),
+defineField({
+name: "slug",
+title: "slug",
+type: "slug",
+options: {
+source: "productname",
+maxLength: 200,
+slugify: (input: string) =>
+input.toLowerCase().replace(/\s+/g, "-").slice(0, 20),
+},
+}),
+defineField({
+name: "description",
+title: "Description",
+type: "array",
+of: [
+{
+type: "block", // for ritch text
+},
+],
+}),
+defineField({
+name: "price",
+title: "Price",
+type: "number",
+}),
+defineField({
+name: "producttype",
+title: "Product Type",
+type: "string",
+}),
+defineField({
+name: "size",
+title: "Size",
+type: "array",
+of: [{ type: "string" }],
+}),
+defineField({
+name: "quantity",
+title: "quantity",
+type: "number",
+}),
+defineField({
+name: "image",
+title: "Image",
+type: "array",
+of: [
+{
+type: "image",
+fields: [
+{
+name: "alt",
+title: "Alternative Text",
+type: "string",
+},
+],
+},
+],
+}),
+],
+});
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+# 4.1 define types of data that you are fething from sanity
 
-## Deploy on Vercel
+import { Image } from "sanity";
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+export interface IDescription {
+level: number;
+\_type: string;
+style: string;
+\_key: string;
+listItem: string;
+markDefs: any[];
+children: any[];
+}
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+export interface Islug {
+current: string;
+\_type: string;
+}
+
+// singleSanityProducstType;
+export interface sanityProducstType {
+quantity: number;
+image: Image[];
+producttype: string;
+productname: string;
+slug: Islug;
+description: IDescription[];
+size: string[];
+price: number;
+\_id: string;
+}
+export interface allSanityProducstType {
+query: string;
+result: Array<sanityProducstType>;
+}
+
+# 5 fech data from sanity
+
+const getServicesFromSanity = async () => {
+const services = await client.fetch('\*[_type=="services"]');
+return services;
+};
+
+# 5 fech data from sanity with each tyme updated
+
+const getBlogFromSanity = async () => {
+const blog = await client.fetch(
+'\*[_type=="blog"]',
+{},
+{
+cache: "no-cache",
+}
+);
+
+return blog;
+};
+
+# 6 to render image import urlForImage function from "image.ts" from sanity
+
+import { urlForImage } from "@/sanity/lib/image";
+<Image
+              src={urlForImage(item.image).url()}
+              width={100}
+              height={100}
+              alt={item.image.alt}
+            />
+
+# 7 to render image write following code in next.config.mjs file to access the image
+
+images:{
+remotePatterns:[
+{
+protocol:"https",
+hostname:'cdn.sanity.io',
+port:'',
+pathname:"/**"
+}
+]
+}
+
+# 8 to render the rich text from sanity
+
+1: 'npm i react-portable-text'
+2: import PortableText from "react-portable-text"
+3: <PortableText
+              className="leading-relaxed"
+              content={product.description}
+            />
+
+# complete code
+
+const getProductsFromSanity = async () => {
+const products = await client.fetch(
+'\*[_type=="product"]',
+{},
+{ cache: "no-cache" } // for each time updated
+);
+return products;
+};
+// to render on screen
+{products.map((item: any) => {
+return (
+<>
+
+<p>{item.title}</p>
+<br />
+<p>{item.description}</p>
+<br />
+<p>alt:{item.image.alt}</p>
+<br />
+<p>{item.catagory.name}</p>
+<Image
+              src={urlForImage(item.image).url()}
+              width={200}
+              height={100}
+              alt=""
+            />
+
+# this complete code work same
+
+const getProductsFromSanity = async () => {
+const products = await client.fetch(
+'\*[_type=="product"]{title,description,image{alt},catagory->{name},image}',
+{},
+{ cache: "no-cache" } // for each time updated
+);
+return products;
+};
+// to render on screen
+{products.map((item: any) => {
+return (
+<>
+
+<p>{item.title}</p>
+<br />
+<p>{item.description}</p>
+<br />
+<p>alt:{item.image.alt}</p>
+<br />
+<p>{item.catagory.name}</p>
+<Image
+              src={urlForImage(item.image).url()}
+              width={200}
+              height={100}
+              alt=""
+            />
